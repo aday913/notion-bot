@@ -44,8 +44,15 @@ class NotionBot():
         else:
             raise FileNotFoundError(f"Could not load configuration yaml file {config_file}")
         
-    def query_db(self, db_label : str, filter_json : dict):
-        pass
+    def query_db(self, db_label : str, filter_json=None):
+        db_id = self.databases[db_label]['id']
+        if filter_json:
+            response = requests.api.post(f'{self.url}/{db_id}/query', headers=self.headers, json=filter_json)
+        else:
+            response = requests.api.post(f'{self.url}/{db_id}/query', headers=self.headers)
+        formatted_response = response.json()
+        with open('example.json', 'w') as f:
+            json.dump(formatted_response, f, indent=2)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -55,3 +62,13 @@ if __name__ == '__main__':
         # print(config)
     
     notionBot = NotionBot(config)
+    notion_filter = {
+        "filter" : {
+            "property" : "Alex-Status",
+            "status" : {
+                "equals" : "Done"
+            }
+        }
+    }
+    notionBot.query_db("Library", filter_json=notion_filter)
+    # notionBot.query_db("Library")
